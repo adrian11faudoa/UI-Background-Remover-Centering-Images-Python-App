@@ -1,16 +1,17 @@
+# Imports
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 from rembg import remove
 
-# GLOBAL VARIABLES
+# Global Variables
 image_paths = []
 current_index = 0
 original_img = None
 processed_img = None
 
 
-# LOAD MULTIPLE IMAGES
+# Load Multiple Images
 def load_images():
     global image_paths, current_index
     paths = filedialog.askopenfilenames(
