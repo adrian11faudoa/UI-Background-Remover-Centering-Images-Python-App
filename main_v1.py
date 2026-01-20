@@ -27,7 +27,7 @@ def remove_background():
     show_preview(processed_img, original=False)
 
 
-# CROP EMPTY SPACE Function
+# Crop Empty Space Function
 def crop_space():
     global processed_img
     if processed_img is None:
@@ -37,7 +37,7 @@ def crop_space():
     show_preview(processed_img, original=False)
 
 
-# CENTER IMAGE Function
+# Center Image Function
 def center_image():
     global processed_img
     if processed_img is None:
@@ -55,7 +55,7 @@ def center_image():
     show_preview(processed_img, original=False)
 
 
-# SAVE IMAGE Function
+# Save Image Function
 def save_image():
     if processed_img is None:
         return
@@ -64,7 +64,7 @@ def save_image():
         processed_img.save(path, "PNG")
 
 
-# SHOW PREVIEW Function
+# Show Preview Function
 def show_preview(img, original=True):
     preview = img.copy()
     preview.thumbnail((250, 250))
@@ -95,6 +95,5 @@ result_label = tk.Label(root)
 result_label.pack(side="right")
 
 root.mainloop()
-
 
 
