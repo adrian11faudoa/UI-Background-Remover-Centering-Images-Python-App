@@ -3,15 +3,15 @@ Background Remover + Centering App
 
 - Version 1
   - Code Structure:  <br>
-    Imports  <br>
-    Global Variables  <br>
-    Load Image Function  <br>
-    Remove Background Function  <br>
-    Crop Empty Space Function  <br>
-    Center Image Function  <br>
-    Save Image Function  <br>
-    Show Preview Function  <br>
-    UI  <br> 
+      Imports  <br>
+      Global Variables  <br>
+      Load Image Function  <br>
+      Remove Background Function  <br>
+      Crop Empty Space Function  <br>
+      Center Image Function  <br>
+      Save Image Function  <br>
+      Show Preview Function  <br>
+      UI  <br> 
 
     - Added Functions:  
       LOAD IMAGE : load_image()  
