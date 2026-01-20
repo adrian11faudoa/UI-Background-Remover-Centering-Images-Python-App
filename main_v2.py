@@ -3,14 +3,14 @@ from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 from rembg import remove
 
-# --- GLOBALS ---
+# GLOBAL VARIABLES
 image_paths = []
 current_index = 0
 original_img = None
 processed_img = None
 
 
-# --- LOAD MULTIPLE IMAGES ---
+# LOAD MULTIPLE IMAGES
 def load_images():
     global image_paths, current_index
     paths = filedialog.askopenfilenames(
@@ -34,7 +34,7 @@ def load_image_at_index(i):
     result_label.config(image="")  # clear result preview
 
 
-# --- REMOVE BACKGROUND ---
+# REMOVE BACKGROUND
 def remove_background():
     global processed_img
     if original_img is None:
@@ -43,7 +43,7 @@ def remove_background():
     show_preview(processed_img, original=False)
 
 
-# --- AUTO-CROP EMPTY SPACE ---
+# AUTO-CROP EMPTY SPACE
 def crop_space():
     global processed_img
     if processed_img is None:
@@ -53,7 +53,7 @@ def crop_space():
     show_preview(processed_img, original=False)
 
 
-# --- CENTER IMAGE ---
+# CENTER IMAGE
 def center_image():
     global processed_img
     if processed_img is None:
@@ -71,14 +71,14 @@ def center_image():
     show_preview(processed_img, original=False)
 
 
-# --- AUTO PROCESS (BG REMOVE + CROP + CENTER) ---
+# AUTO PROCESS (BG REMOVE + CROP + CENTER)
 def auto_process():
     remove_background()
     crop_space()
     center_image()
 
 
-# --- SAVE IMAGE ---
+# SAVE IMAGE
 def save_image():
     if processed_img is None:
         messagebox.showerror("Error", "No processed image available.")
@@ -93,7 +93,7 @@ def save_image():
         messagebox.showinfo("Saved", "Image saved successfully.")
 
 
-# --- SHOW PREVIEW ---
+# SHOW PREVIEW
 def show_preview(img, original=True):
     preview = img.copy()
     preview.thumbnail((250, 250))
@@ -107,7 +107,7 @@ def show_preview(img, original=True):
         result_label.image = tk_img
 
 
-# --- NEXT & PREVIOUS IMAGE ---
+# NEXT & PREVIOUS IMAGE
 def next_image():
     global current_index
     if not image_paths:

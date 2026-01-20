@@ -1,14 +1,14 @@
+# Imports
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 from rembg import remove
 
-# GLOBALS 
+# Global Variables
 original_img = None
 processed_img = None
 
-
-# LOAD IMAGE
+# Load Image Function
 def load_image():
     global original_img
     path = filedialog.askopenfilename()
@@ -18,7 +18,7 @@ def load_image():
     show_preview(original_img, original=True)
 
 
-# REMOVE BACKGROUND
+# Remove Background Function
 def remove_background():
     global processed_img
     if original_img is None:
@@ -27,7 +27,7 @@ def remove_background():
     show_preview(processed_img, original=False)
 
 
-# CROP EMPTY SPACE
+# CROP EMPTY SPACE Function
 def crop_space():
     global processed_img
     if processed_img is None:
@@ -37,7 +37,7 @@ def crop_space():
     show_preview(processed_img, original=False)
 
 
-# CENTER IMAGE
+# CENTER IMAGE Function
 def center_image():
     global processed_img
     if processed_img is None:
@@ -55,7 +55,7 @@ def center_image():
     show_preview(processed_img, original=False)
 
 
-# SAVE
+# SAVE IMAGE Function
 def save_image():
     if processed_img is None:
         return
@@ -64,11 +64,10 @@ def save_image():
         processed_img.save(path, "PNG")
 
 
-# SHOW PREVIEW
+# SHOW PREVIEW Function
 def show_preview(img, original=True):
     preview = img.copy()
     preview.thumbnail((250, 250))
-    
     tk_img = ImageTk.PhotoImage(preview)
     
     if original:
