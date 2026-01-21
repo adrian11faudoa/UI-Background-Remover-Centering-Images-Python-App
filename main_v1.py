@@ -8,6 +8,7 @@ from rembg import remove
 original_img = None
 processed_img = None
 
+
 # Load Image Function
 def load_image():
     global original_img
@@ -42,15 +43,12 @@ def center_image():
     global processed_img
     if processed_img is None:
         return
-    
     w, h = processed_img.size
     size = max(w, h)
-    
     canvas = Image.new("RGBA", (size, size), (0,0,0,0))
     x = (size - w) // 2
     y = (size - h) // 2
     canvas.paste(processed_img, (x, y), processed_img)
-    
     processed_img = canvas
     show_preview(processed_img, original=False)
 
@@ -92,7 +90,6 @@ tk.Button(root, text="Save Image", command=save_image).pack()
 # UI Image Previews
 original_label = tk.Label(root)
 original_label.pack(side="left")
-
 result_label = tk.Label(root)
 result_label.pack(side="right")
 
