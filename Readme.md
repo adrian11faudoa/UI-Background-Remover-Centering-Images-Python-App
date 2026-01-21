@@ -3,7 +3,7 @@
   (git pull origin main --rebase) <br>
   py -3.11 main_v1.py 🔴 <br>
 
-- Version 1
+- Version 1 <br>
   Code Structure:  <br>
     🟢Imports : Added <br>
     🟢Global Variables : Added <br>
@@ -17,7 +17,7 @@
     🟢UI Buttons : Added<br>
     🟢UI Image Previews : Added <br>
 
-- Version 2
+- Version 2 <br>
   Code Structure:  <br>
     ⚪Imports  <br>
     🔵Global Variables : Updated <br>
@@ -34,7 +34,7 @@
     🟢UI Navigation : Added <br>
     🔵UI Image Previews : Updated <br>
 
-- Version 3
+- Version 3 <br>
   Code Structure:  <br>
     ⚪Imports  <br>
     🔵Global Variables : Updated <br>
@@ -53,7 +53,7 @@
     🟢UI Status : Added <br> 
     🔵UI Image Previews : Updated <br>
 
-- Version 4
+- Version 4 <br>
 
 
 
