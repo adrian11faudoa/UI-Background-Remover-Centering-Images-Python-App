@@ -3,7 +3,7 @@
   (git pull origin main --rebase) <br>
   py -3.11 main_v1.py 🔴 <br>
 
-- Version 1 <br>
+- Version 1 <br> 
   Code Structure:  <br>
     🟢Imports : Added <br>
     🟢Global Variables : Added <br>
@@ -15,9 +15,14 @@
     🟢Show Preview Function : Added <br>
     🟢UI : Added <br> 
     🟢UI Buttons : Added<br>
-    🟢UI Image Previews : Added <br>
+    🟢UI Image Previews : Added <br><br>
+
 
 - Version 2 <br>
+  Update: <br>
+    Multi Image Support <br>
+    All Process Button <br>
+    Navigate Images Previews <br>
   Code Structure:  <br>
     ⚪Imports  <br>
     🔵Global Variables : Updated <br>
@@ -34,7 +39,12 @@
     🟢UI Navigation : Added <br>
     🔵UI Image Previews : Updated <br>
 
-- Version 3 <br>
+    It only does "All Processes" in 1 Photo at a time <br>
+
+- Version 3 <br> 
+  Update: <br>
+    Separate State for every Image Preview
+    Added Safety Checks
   Code Structure:  <br>
     ⚪Imports  <br>
     🔵Global Variables : Updated <br>
@@ -54,22 +64,39 @@
     🔵UI Image Previews : Updated <br>
 
 - Version 4 <br>
+  Update: <br>
+    Batch Processing Runs fully Automated for all images <br>
+    Progress bar <br>
+    Larger Previews <br>
+
+  Code Structure:  <br>
 
 
 
-Version 5
+- Version 5
+  Update: <br>
+
+  Code Structure:  <br>
 
 
+- Version 6
+  Update: <br>
 
-Version 6
+  Code Structure:  <br>
 
 
-Version 7
+- Version 7
 Actual version
+  Update: <br>
+
+  Code Structure:  <br>
 
 
-Version 8
+- Version 8
 Añadir fondos a las imagenes 
+  Update: <br>
+
+  Code Structure:  <br>
 
 
 

@@ -5,9 +5,9 @@ from PIL import Image, ImageTk
 from rembg import remove
 
 # Global Variables 
-image_paths = []
 original_imgs = []    # list of PIL.Image originals (RGBA)
 processed_imgs = []   # list of PIL.Image processed (RGBA) or None
+image_paths = []
 current_index = 0
 
 
@@ -48,7 +48,7 @@ def update_status():
         status_var.set("No images loaded")
 
 
-# Remove Background (for current image)
+# Remove Background Function (for current image)
 def remove_background():
     if not original_imgs:
         return
@@ -77,7 +77,7 @@ def crop_space():
     show_result_preview(cropped)
 
 
-# Center Image Function (for current processed image) ---
+# Center Image Function (for current processed image)
 def center_image():
     if not processed_imgs or processed_imgs[current_index] is None:
         messagebox.showerror("Error", "No processed image to center. Run Remove Background first.")
