@@ -82,12 +82,14 @@ def show_preview(img, original=True):
 root = tk.Tk()
 root.title("Background Remover + Centering App")
 
+# UI Buttons
 tk.Button(root, text="Load Image", command=load_image).pack()
 tk.Button(root, text="Remove Background", command=remove_background).pack()
 tk.Button(root, text="Crop Empty Space", command=crop_space).pack()
 tk.Button(root, text="Center Object", command=center_image).pack()
 tk.Button(root, text="Save Image", command=save_image).pack()
 
+# UI Image Previews
 original_label = tk.Label(root)
 original_label.pack(side="left")
 
@@ -95,5 +97,3 @@ result_label = tk.Label(root)
 result_label.pack(side="right")
 
 root.mainloop()
-
-

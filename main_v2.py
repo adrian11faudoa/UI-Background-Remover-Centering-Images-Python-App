@@ -1,14 +1,14 @@
-# Imports
+# Imports 
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 from rembg import remove
 
-# Global Variables
-image_paths = []
-current_index = 0
+# Global Variables 
 original_img = None
 processed_img = None
+image_paths = []
+current_index = 0
 
 
 # Load Multiple Images
@@ -35,7 +35,7 @@ def load_image_at_index(i):
     result_label.config(image="")  # clear result preview
 
 
-# REMOVE BACKGROUND
+# Remove Background Function
 def remove_background():
     global processed_img
     if original_img is None:
@@ -44,7 +44,7 @@ def remove_background():
     show_preview(processed_img, original=False)
 
 
-# AUTO-CROP EMPTY SPACE
+# Crop Empty Space Function
 def crop_space():
     global processed_img
     if processed_img is None:
@@ -54,7 +54,7 @@ def crop_space():
     show_preview(processed_img, original=False)
 
 
-# CENTER IMAGE
+# Center Image Function
 def center_image():
     global processed_img
     if processed_img is None:
@@ -72,14 +72,14 @@ def center_image():
     show_preview(processed_img, original=False)
 
 
-# AUTO PROCESS (BG REMOVE + CROP + CENTER)
-def auto_process():
+# All Processes Combined Function (BG Remove + Crop + Center Functions)
+def all_processes():
     remove_background()
     crop_space()
     center_image()
 
 
-# SAVE IMAGE
+# Save Image Function
 def save_image():
     if processed_img is None:
         messagebox.showerror("Error", "No processed image available.")
@@ -94,7 +94,7 @@ def save_image():
         messagebox.showinfo("Saved", "Image saved successfully.")
 
 
-# SHOW PREVIEW
+# Show Preview Function
 def show_preview(img, original=True):
     preview = img.copy()
     preview.thumbnail((250, 250))
@@ -108,7 +108,7 @@ def show_preview(img, original=True):
         result_label.image = tk_img
 
 
-# NEXT & PREVIOUS IMAGE
+# Next & Previous Image Functions
 def next_image():
     global current_index
     if not image_paths:
@@ -127,18 +127,17 @@ def prev_image():
         load_image_at_index(current_index)
 
 
-# --- UI ---
+# UI
 root = tk.Tk()
-root.title("Background Remover + Auto-Center App")
+root.title("Background Remover + Centering App")
 
-
-# BUTTONS
+# UI Buttons
 tk.Button(root, text="Select Images", command=load_images).pack(pady=4)
 tk.Button(root, text="Remove Background", command=remove_background).pack(pady=4)
-tk.Button(root, text="Auto-Crop & Center", command=auto_process).pack(pady=4)
+tk.Button(root, text="All Processes", command=all_processes).pack(pady=4)
 tk.Button(root, text="Save Image", command=save_image).pack(pady=4)
 
-# NAVIGATION
+# UI Navigation
 nav_frame = tk.Frame(root)
 nav_frame.pack(pady=5)
 
@@ -146,7 +145,7 @@ tk.Button(nav_frame, text="◀ Previous", command=prev_image).pack(side="left", 
 tk.Button(nav_frame, text="Next ▶", command=next_image).pack(side="right", padx=5)
 
 
-# IMAGE PREVIEWS
+# UI Image Previews
 preview_frame = tk.Frame(root)
 preview_frame.pack()
 
