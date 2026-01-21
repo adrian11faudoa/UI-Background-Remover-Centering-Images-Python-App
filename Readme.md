@@ -1,7 +1,7 @@
 
-Background Remover + Centering App 
-  (git pull origin main --rebase) 
-  py -3.11 main_v1.py 🔴
+Background Remover + Centering App <br>
+  (git pull origin main --rebase) <br>
+  py -3.11 main_v1.py 🔴 <br>
 
 - Version 1
   Code Structure:  <br>
