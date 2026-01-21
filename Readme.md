@@ -5,17 +5,17 @@ Background Remover + Centering App
 
 - Version 1
   Code Structure:  <br>
-    Imports  <br>
-    Global Variables  <br>
-    Load Image Function : load_image() <br>
-    Remove Background Function : remove_background()  <br>
-    Crop Empty Space Function : crop_space() <br>
-    Center Image Function : center_image()  <br>
-    Save Image Function : save_image()   <br>
-    Show Preview Function : show_preview(img, original=True) <br>
-    UI  <br> 
-    UI Buttons <br>
-    UI Image Previews <br>
+    🟢Imports : Added <br>
+    🟢Global Variables : Added <br>
+    🟢Load Image Function : Added <br>
+    🟢Remove Background Function : Added  <br>
+    🟢Crop Empty Space Function : Added <br>
+    🟢Center Image Function : Added  <br>
+    🟢Save Image Function : Added   <br>
+    🟢Show Preview Function : Added <br>
+    🟢UI : Added <br> 
+    🟢UI Buttons : Added<br>
+    🟢UI Image Previews : Added <br>
 
 - Version 2
   Code Structure:  <br>
