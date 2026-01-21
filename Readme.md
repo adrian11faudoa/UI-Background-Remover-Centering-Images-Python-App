@@ -1,7 +1,7 @@
 
 Background Remover + Centering App 
   (git pull origin main --rebase) 
-  py -3.11 main_v1.py
+  py -3.11 main_v1.py 🔴
 
 - Version 1
   - Code Structure:  <br>
@@ -20,19 +20,19 @@ Background Remover + Centering App
 - Version 2
   - Code Structure:  <br>
       Imports  <br>
-      <span style="color:blue">Global Variables : Updated</span><br>
-      <span style="color:yellow">Load Image Function : Changed => Load Multiple Images Function : load_images() </span><br>
-      Remove Background Function  <br>
-      Crop Empty Space Function  <br>
-      Center Image Function  <br>
-      <span style="color:green">All Processes Combined Function : Added </span><br>
-      <span style="color:blue">Save Image Function : Updated </span><br>
-      Show Preview Function  <br>
-      <span style="color:green">Next & Previous Image Functions : Added </span><br>
-      UI  <br> 
-      <span style="color:blue">UI Buttons : Updated </span><br>
-      <span style="color:green">UI Navigation : Added </span><br>
-      <span style="color:blue">UI Image Previews : Updated </span><br>
+      🔵Global Variables : Updated <br>
+      🟡Load Image Function : Changed => Load Multiple Images Function : load_images() </span><br>
+      ⚪Remove Background Function  <br>
+      ⚪Crop Empty Space Function  <br>
+      ⚪Center Image Function  <br>
+      🟢All Processes Combined Function : Added  <br>
+      🔵Save Image Function : Updated <br>
+      ⚪Show Preview Function  <br>
+      🟢Next & Previous Image Functions : Added <br>
+      ⚪UI  <br> 
+      🔵UI Buttons : Updated <br>
+      🟢UI Navigation : Added <br>
+      🔵UI Image Previews : Updated <br>
 
 - Version 3
 
