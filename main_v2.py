@@ -99,7 +99,7 @@ def show_preview(img, original=True):
         result_label.image = tk_img
 
 
-# Next & Previous Image Functions
+# Navigation Functions
 def next_image():
     global current_index
     if not image_paths:

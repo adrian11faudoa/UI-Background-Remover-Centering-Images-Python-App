@@ -136,7 +136,7 @@ def clear_result_preview():
     result_label.image = None
 
 
-# Next & Previous Image Functions
+# Navigation Functions
 def next_image():
     if not image_paths:
         return

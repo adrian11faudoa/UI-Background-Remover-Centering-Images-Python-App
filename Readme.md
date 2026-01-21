@@ -33,33 +33,32 @@
     🟢All Processes Combined Function : Added  <br>
     🔵Save Image Function : Updated <br>
     ⚪Show Preview Function  <br>
-    🟢Next & Previous Image Functions : Added <br>
+    🟢Navigation Functions : Added <br>
     ⚪UI  <br> 
     🔵UI Buttons : Updated <br>
     🟢UI Navigation : Added <br>
     🔵UI Image Previews : Updated <br>
 
-    It only does "All Processes" in 1 Photo at a time <br>
 
 - Version 3 <br> 
   Update: <br>
-    Separate State for every Image Preview
-    Added Safety Checks
+    Separate State for every Image Preview <br>
+    Added Safety Checks <br>
   Code Structure:  <br>
     ⚪Imports  <br>
     🔵Global Variables : Updated <br>
     🔵Load Multiple Images Function : Updated <br>
     🟢Update Status Label : Added <br>
-    🔵Remove Background Function  <br>
-    🔵Crop Empty Space Function  <br>
-    🔵Center Image Function  <br>
-    🔵All Processes Combined Function : Added  <br>
+    🔵Remove Background Function : Updated  <br>
+    🔵Crop Empty Space Function : Updated <br>
+    🔵Center Image Function : Updated <br>
+    🔵All Processes Combined Function : Updated  <br>
     🔵Save Image Function : Updated <br>
-    🔵Show Preview Function  <br>
-    🔵Next & Previous Image Functions : Updated <br>
+    🔵Show Preview Function : Updated <br>
+    🔵Navigation Functions : Updated <br>
     ⚪UI  <br> 
     🔵UI Buttons : Updated <br>
-    ⚪UI Navigation : Added <br>
+    ⚪UI Navigation  <br>
     🟢UI Status : Added <br> 
     🔵UI Image Previews : Updated <br>
 
@@ -67,10 +66,29 @@
   Update: <br>
     Batch Processing Runs fully Automated for all images <br>
     Progress bar <br>
-    Larger Previews <br>
-
+    Larger Size Previews <br>
   Code Structure:  <br>
-
+    🔵Imports : Updated <br>
+    🔵Global Variables : Updated <br>
+    ⚪Load Multiple Images Function  <br>
+    ⚪Update Status Label <br>
+    🟢Remove Background Single Function : Added <br> 
+    🟢Crop Empty Space Single Function : Added <br> 
+    🟢Center Image Single Function : Added <br> 
+    🔵Remove Background Function : Updated <br>
+    🔵Crop Empty Space Function : Updated <br>
+    🔵Center Image Function : Updated <br>
+    🔵All Processes Combined Function : Updated  <br>
+    🟢Batch Processing (THREADING) : Added <br>
+    🔵Save Image Function : Updated <br>
+    🟡Show Preview Function : Changed => Show Preview Function + ZOOM <br>
+    🔵Navigation Functions : Updated <br>
+    ⚪UI  <br> 
+    🔵UI Buttons : Updated <br>
+    ⚪UI Navigation  <br>
+    ⚪UI Status  <br> 
+    🟢UI Progress Bar : Added <br>
+    🔵UI Image Previews : Updated <br>
 
 
 - Version 5
