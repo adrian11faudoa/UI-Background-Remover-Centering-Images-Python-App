@@ -21,7 +21,7 @@ Background Remover + Centering App
   Code Structure:  <br>
     ⚪Imports  <br>
     🔵Global Variables : Updated <br>
-    🟡Load Image Function : Changed => Load Multiple Images Function : load_images() </span><br>
+    🟡Load Image Function : Changed => Load Multiple Images Function <br>
     ⚪Remove Background Function  <br>
     ⚪Crop Empty Space Function  <br>
     ⚪Center Image Function  <br>
