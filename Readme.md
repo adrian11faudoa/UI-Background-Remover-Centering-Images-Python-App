@@ -1,5 +1,5 @@
 
-Background Remover + Centering App <br>
+# Background Remover + Centering App <br>
   (git pull origin main --rebase) <br>
   py -3.11 main_v1.py 🔴 <br>
 
