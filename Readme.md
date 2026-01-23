@@ -111,17 +111,37 @@
     ⚪Show Preview Function + ZOOM <br>
     ⚪Navigation Functions  <br>
     ⚪UI  <br> 
-    ⚪UI Buttons : Updated <br>
+    ⚪UI Buttons  <br>
     ⚪UI Navigation  <br>
     ⚪UI Status  <br> 
-    ⚪UI Progress Bar : Added <br>
+    ⚪UI Progress Bar  <br>
     ⚪UI Image Previews  <br>
 
 - Version 6
   Update: <br>
 
   Code Structure:  <br>
-
+    ⚪Imports  <br>
+    ⚪Global Variables  <br>
+    🔵Load Multiple Images Function : Updated  <br>
+    ⚪Update Status Label <br>
+    ⚪Remove Background Single Function  <br> 
+    ⚪Crop Empty Space Single Function  <br> 
+    ⚪Center Image Single Function  <br> 
+    🔵Remove Background Function  <br>
+    ⚪Crop Empty Space Function  <br>
+    ⚪Center Image Function  <br>
+    ⚪All Processes Combined Function   <br>
+    🔵Batch Processing (THREADING)  <br>
+    ⚪Save Image Function  <br>
+    ⚪Show Preview Function + ZOOM <br>
+    ⚪Navigation Functions  <br>
+    ⚪UI  <br> 
+    ⚪UI Buttons :  <br>
+    ⚪UI Navigation  <br>
+    ⚪UI Status  <br> 
+    ⚪UI Progress Bar :  <br>
+    ⚪UI Image Previews  <br>
 
 - Version 7
 Actual version
