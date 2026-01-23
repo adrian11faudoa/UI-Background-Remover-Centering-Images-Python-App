@@ -20,13 +20,13 @@
 
 ### Version 2 <br>
 - Update: <br>
-    - Multi Image Support <br>
-    - All Process Button <br>
-    - Navigate Images Previews <br>
+  - Multi Image Support <br>
+  - All Process Button <br>
+  - Navigate Images Previews <br>
 - Code Structure:  <br>
-    ⚪Imports  <br>
-    🔵Global Variables : Updated <br>
-    🟡Load Image Function : Changed => Load Multiple Images Function <br>
+  ⚪Imports  <br>
+  🔵Global Variables : Updated <br>
+  🟡Load Image Function : Changed => Load Multiple Images Function <br>
     ⚪Remove Background Function  <br>
     ⚪Crop Empty Space Function  <br>
     ⚪Center Image Function  <br>
@@ -40,11 +40,11 @@
     🔵UI Image Previews : Updated <br>
 
 
-- Version 3 <br> 
-  Update: <br>
-    Separate State for every Image Preview <br>
-    Added Safety Checks <br>
-  Code Structure:  <br>
+### Version 3 <br> 
+- Update: <br>
+  - Separate State for every Image Preview <br>
+  - Added Safety Checks <br>
+- Code Structure:  <br>
     ⚪Imports  <br>
     🔵Global Variables : Updated <br>
     🔵Load Multiple Images Function : Updated <br>
@@ -62,7 +62,7 @@
     🟢UI Status : Added <br> 
     🔵UI Image Previews : Updated <br>
 
-- Version 4 <br>
+### Version 4 <br>
   Update: <br>
     Batch Processing Runs fully Automated for all images <br>
     Progress bar <br>
@@ -91,7 +91,7 @@
     🔵UI Image Previews : Updated <br>
 
 
-- Version 5
+### Version 5
   Update: <br>
   HEIC Support
   Code Structure:  <br>
@@ -117,7 +117,7 @@
     ⚪UI Progress Bar  <br>
     ⚪UI Image Previews  <br>
 
-- Version 6
+### Version 6
   Update: <br>
 
   Code Structure:  <br>
@@ -143,7 +143,7 @@
     ⚪UI Progress Bar  <br>
     ⚪UI Image Previews  <br>
 
-- Version 7
+### Version 7
 Actual version
   Update: <br>
     ⚪Imports  <br>
@@ -170,7 +170,7 @@ Actual version
   Code Structure:  <br>
 
 
-- Version 8
+### Version 8
 Añadir fondos a las imagenes 
   Update: <br>
 
