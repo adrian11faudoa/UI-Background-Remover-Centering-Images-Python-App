@@ -3,7 +3,7 @@
   (git pull origin main --rebase) <br>
   py -3.11 main_v1.py 🔴 <br>
 
-- Version 1 <br> 
+  ### Version 1 <br> 
   Code Structure:  <br>
     🟢Imports : Added <br>
     🟢Global Variables : Added <br>
