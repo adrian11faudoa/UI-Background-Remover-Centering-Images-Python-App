@@ -76,7 +76,7 @@ def show_preview(img, original=True):
         result_label.image = tk_img
 
 
-# UI
+# UI Setup
 root = tk.Tk()
 root.title("Background Remover + Centering App")
 

@@ -194,7 +194,7 @@ def prev_image():
         load_image_at_index(current_index - 1)
 
 
-# UI 
+# UI Setup
 root = tk.Tk()
 root.title("Background Remover + Auto-Center + Batch App")
 

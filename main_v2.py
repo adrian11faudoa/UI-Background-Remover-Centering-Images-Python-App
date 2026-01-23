@@ -117,7 +117,7 @@ def prev_image():
         load_image_at_index(current_index)
 
 
-# UI
+# UI Setup
 root = tk.Tk()
 root.title("Background Remover + Centering App")
 

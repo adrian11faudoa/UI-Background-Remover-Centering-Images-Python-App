@@ -154,7 +154,7 @@ def prev_image():
 # (not necessary since we write processed_imgs immediately after operations)
 
 
-# UI 
+# UI Setup
 root = tk.Tk()
 root.title("Background Remover + Centering App")
 
