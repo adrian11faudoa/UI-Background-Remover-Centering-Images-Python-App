@@ -93,7 +93,7 @@
 
 ### Version 5
 - Update: <br>
-  - HEIC Support
+  - HEIC Support <br>
 - Code Structure:  <br>
   🔵Imports : Updated <br>
   ⚪Global Variables  <br>
@@ -119,7 +119,7 @@
 
 ### Version 6
 - Update: <br>
-  - 
+  - () <br>
 - Code Structure:  <br>
     ⚪Imports  <br>
     ⚪Global Variables  <br>
@@ -143,9 +143,9 @@
     ⚪UI Progress Bar  <br>
     ⚪UI Image Previews  <br><br>
 
-### Version 7 Actual Version
+### Version 7 
 - Update: <br>
-  - 
+  - Actual Version <br>
 - Code Structure: <br>
     ⚪Imports  <br>
     ⚪Global Variables  <br>
@@ -171,17 +171,9 @@
 
 
 ### Version 8
-- Añadir fondos a las imagenes 
-  Update: <br>
-
-  Code Structure:  <br>
-
-
-
-
-
-
-
+- Update: <br>
+  - Añadir fondos a las imagenes <br>
+- Code Structure:  <br>
 
 
 
