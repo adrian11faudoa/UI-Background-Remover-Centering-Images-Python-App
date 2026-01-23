@@ -83,17 +83,16 @@ def center_image_single(img):
     return canvas
 
 
-#def remove_background():
-#    global processed_imgs
-#    if not original_imgs:
-#        return
-#    #img = original_imgs[current_index]
-#    img = get_original_image(current_index)
-#
-#    processed_imgs[current_index] = remove_background_single(img)
-#    show_result_preview(processed_imgs[current_index])
-
 # Remove Background Function
+    #def remove_background():
+    #    global processed_imgs
+    #    if not original_imgs:
+    #        return
+    #    #img = original_imgs[current_index]
+    #    img = get_original_image(current_index)
+    #
+    #    processed_imgs[current_index] = remove_background_single(img)
+    #    show_result_preview(processed_imgs[current_index])
 def remove_background():
     if not image_paths:
         return
@@ -221,7 +220,7 @@ def prev_image():
         load_image_at_index(current_index - 1)
 
 
-# UI 
+# UI Setup
 root = tk.Tk()
 root.title("Background Remover + Auto-Center + Batch App")
 
@@ -257,6 +256,7 @@ progress_bar = tk.Frame(root, height=20, width=300, bd=1, relief="sunken")
 progress_bar.pack(pady=5)
 progress_label = tk.Label(root, text="")
 progress_label.pack()
+
 def update_progress_bar(*args):
     pct = progress_var.get()
     fill_width = int((pct / 100) * 300)

@@ -13,7 +13,7 @@
     🟢Center Image Function : Added  <br>
     🟢Save Image Function : Added   <br>
     🟢Show Preview Function : Added <br>
-    🟢UI : Added <br> 
+    🟢UI Setup : Added <br> 
     🟢UI Buttons : Added<br>
     🟢UI Image Previews : Added <br><br>
 
@@ -34,7 +34,7 @@
     🔵Save Image Function : Updated <br>
     ⚪Show Preview Function  <br>
     🟢Navigation Functions : Added <br>
-    ⚪UI  <br> 
+    ⚪UI Setup <br> 
     🔵UI Buttons : Updated <br>
     🟢UI Navigation : Added <br>
     🔵UI Image Previews : Updated <br>
@@ -56,7 +56,7 @@
     🔵Save Image Function : Updated <br>
     🔵Show Preview Function : Updated <br>
     🔵Navigation Functions : Updated <br>
-    ⚪UI  <br> 
+    ⚪UI Setup <br> 
     🔵UI Buttons : Updated <br>
     ⚪UI Navigation  <br>
     🟢UI Status : Added <br> 
@@ -83,7 +83,7 @@
     🔵Save Image Function : Updated <br>
     🟡Show Preview Function : Changed => Show Preview Function + ZOOM <br>
     🔵Navigation Functions : Updated <br>
-    ⚪UI  <br> 
+    ⚪UI Setup <br> 
     🔵UI Buttons : Updated <br>
     ⚪UI Navigation  <br>
     ⚪UI Status  <br> 
@@ -110,7 +110,7 @@
     ⚪Save Image Function  <br>
     ⚪Show Preview Function + ZOOM <br>
     ⚪Navigation Functions  <br>
-    ⚪UI  <br> 
+    ⚪UI Setup <br> 
     ⚪UI Buttons  <br>
     ⚪UI Navigation  <br>
     ⚪UI Status  <br> 
@@ -128,25 +128,45 @@
     ⚪Remove Background Single Function  <br> 
     ⚪Crop Empty Space Single Function  <br> 
     ⚪Center Image Single Function  <br> 
-    🔵Remove Background Function  <br>
+    🔵Remove Background Function : Updated  <br>
     ⚪Crop Empty Space Function  <br>
     ⚪Center Image Function  <br>
     ⚪All Processes Combined Function   <br>
-    🔵Batch Processing (THREADING)  <br>
+    🔵Batch Processing (THREADING) : Updated <br>
     ⚪Save Image Function  <br>
     ⚪Show Preview Function + ZOOM <br>
     ⚪Navigation Functions  <br>
-    ⚪UI  <br> 
-    ⚪UI Buttons :  <br>
+    ⚪UI Setup <br> 
+    ⚪UI Buttons  <br>
     ⚪UI Navigation  <br>
     ⚪UI Status  <br> 
-    ⚪UI Progress Bar :  <br>
+    ⚪UI Progress Bar  <br>
     ⚪UI Image Previews  <br>
 
 - Version 7
 Actual version
   Update: <br>
-
+    ⚪Imports  <br>
+    ⚪Global Variables  <br>
+    ⚪Load Multiple Images Function   <br>
+    ⚪Update Status Label <br>
+    ⚪Remove Background Single Function  <br> 
+    🔵Crop Empty Space Single Function : Updated  <br>
+    ⚪Center Image Single Function  <br> 
+    ⚪Remove Background Function  <br>
+    ⚪Crop Empty Space Function  <br>
+    ⚪Center Image Function  <br>
+    ⚪All Processes Combined Function   <br>
+    ⚪Batch Processing (THREADING)  <br>
+    ⚪Save Image Function  <br>
+    ⚪Show Preview Function + ZOOM <br>
+    ⚪Navigation Functions  <br>
+    ⚪UI Setup <br> 
+    ⚪UI Buttons  <br>
+    ⚪UI Navigation  <br>
+    ⚪UI Status  <br> 
+    ⚪UI Progress Bar  <br>
+    ⚪UI Image Previews  <br>
   Code Structure:  <br>
 
 
