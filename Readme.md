@@ -3,8 +3,8 @@
   (git pull origin main --rebase) <br>
   py -3.11 main_v1.py 🔴 <br>
 
-  ### Version 1 <br> 
-  Code Structure:  <br>
+### Version 1 <br> 
+- Code Structure:  <br>
     🟢Imports : Added <br>
     🟢Global Variables : Added <br>
     🟢Load Image Function : Added <br>
@@ -18,12 +18,12 @@
     🟢UI Image Previews : Added <br><br>
 
 
-- Version 2 <br>
-##  Update: <br>
+### Version 2 <br>
+- Update: <br>
     Multi Image Support <br>
     All Process Button <br>
     Navigate Images Previews <br>
-##  Code Structure:  <br>
+- Code Structure:  <br>
     ⚪Imports  <br>
     🔵Global Variables : Updated <br>
     🟡Load Image Function : Changed => Load Multiple Images Function <br>
