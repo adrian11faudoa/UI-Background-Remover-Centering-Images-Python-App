@@ -19,11 +19,11 @@
 
 
 ### Version 2 <br>
-- Update: <br>
+- - Update: <br>
     Multi Image Support <br>
     All Process Button <br>
     Navigate Images Previews <br>
-- Code Structure:  <br>
+- - Code Structure:  <br>
     ⚪Imports  <br>
     🔵Global Variables : Updated <br>
     🟡Load Image Function : Changed => Load Multiple Images Function <br>
