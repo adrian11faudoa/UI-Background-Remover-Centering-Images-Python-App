@@ -37,7 +37,7 @@
   ⚪UI Setup <br> 
   🔵UI Buttons : Updated <br>
   🟢UI Navigation : Added <br>
-  🔵UI Image Previews : Updated <br>
+  🔵UI Image Previews : Updated <br><br>
 
 
 ### Version 3 <br> 
@@ -60,7 +60,7 @@
   🔵UI Buttons : Updated <br>
   ⚪UI Navigation  <br>
   🟢UI Status : Added <br> 
-  🔵UI Image Previews : Updated <br>
+  🔵UI Image Previews : Updated <br><br>
 
 ### Version 4 <br>
 - Update: <br>
@@ -88,7 +88,7 @@
   ⚪UI Navigation  <br>
   ⚪UI Status  <br> 
   🟢UI Progress Bar : Added <br>
-  🔵UI Image Previews : Updated <br>
+  🔵UI Image Previews : Updated <br><br>
 
 
 ### Version 5
@@ -115,7 +115,7 @@
   ⚪UI Navigation  <br>
   ⚪UI Status  <br> 
   ⚪UI Progress Bar  <br>
-  ⚪UI Image Previews  <br>
+  ⚪UI Image Previews  <br><br>
 
 ### Version 6
 - Update: <br>
@@ -141,7 +141,7 @@
     ⚪UI Navigation  <br>
     ⚪UI Status  <br> 
     ⚪UI Progress Bar  <br>
-    ⚪UI Image Previews  <br>
+    ⚪UI Image Previews  <br><br>
 
 ### Version 7 Actual Version
 - Update: <br>
@@ -167,12 +167,11 @@
     ⚪UI Navigation  <br>
     ⚪UI Status  <br> 
     ⚪UI Progress Bar  <br>
-    ⚪UI Image Previews  <br>
-  Code Structure:  <br>
+    ⚪UI Image Previews  <br><br>
 
 
 ### Version 8
-Añadir fondos a las imagenes 
+- Añadir fondos a las imagenes 
   Update: <br>
 
   Code Structure:  <br>
