@@ -121,60 +121,83 @@
 - Update: <br>
   - () <br>
 - Code Structure:  <br>
-    ⚪Imports  <br>
-    ⚪Global Variables  <br>
-    🔵Load Multiple Images Function : Updated  <br>
-    ⚪Update Status Label <br>
-    ⚪Remove Background Single Function  <br> 
-    ⚪Crop Empty Space Single Function  <br> 
-    ⚪Center Image Single Function  <br> 
-    🔵Remove Background Function : Updated  <br>
-    ⚪Crop Empty Space Function  <br>
-    ⚪Center Image Function  <br>
-    ⚪All Processes Combined Function   <br>
-    🔵Batch Processing (THREADING) : Updated <br>
-    ⚪Save Image Function  <br>
-    ⚪Show Preview Function + ZOOM <br>
-    ⚪Navigation Functions  <br>
-    ⚪UI Setup <br> 
-    ⚪UI Buttons  <br>
-    ⚪UI Navigation  <br>
-    ⚪UI Status  <br> 
-    ⚪UI Progress Bar  <br>
-    ⚪UI Image Previews  <br><br>
+  ⚪Imports  <br>
+  ⚪Global Variables  <br>
+  🔵Load Multiple Images Function : Updated  <br>
+  ⚪Update Status Label <br>
+  ⚪Remove Background Single Function  <br> 
+  ⚪Crop Empty Space Single Function  <br> 
+  ⚪Center Image Single Function  <br> 
+  🔵Remove Background Function : Updated  <br>
+  ⚪Crop Empty Space Function  <br>
+  ⚪Center Image Function  <br>
+  ⚪All Processes Combined Function   <br>
+  🔵Batch Processing (THREADING) : Updated <br>
+  ⚪Save Image Function  <br>
+  ⚪Show Preview Function + ZOOM <br>
+  ⚪Navigation Functions  <br>
+  ⚪UI Setup <br> 
+  ⚪UI Buttons  <br>
+  ⚪UI Navigation  <br>
+  ⚪UI Status  <br> 
+  ⚪UI Progress Bar  <br>
+  ⚪UI Image Previews  <br><br>
 
 ### Version 7 
 - Update: <br>
-  - Actual Version <br>
+  - Upgrade Functions to Better Result Image <br>
 - Code Structure: <br>
-    ⚪Imports  <br>
-    ⚪Global Variables  <br>
-    ⚪Load Multiple Images Function   <br>
-    ⚪Update Status Label <br>
-    ⚪Remove Background Single Function  <br> 
-    🔵Crop Empty Space Single Function : Updated  <br>
-    ⚪Center Image Single Function  <br> 
-    ⚪Remove Background Function  <br>
-    ⚪Crop Empty Space Function  <br>
-    ⚪Center Image Function  <br>
-    ⚪All Processes Combined Function   <br>
-    ⚪Batch Processing (THREADING)  <br>
-    ⚪Save Image Function  <br>
-    ⚪Show Preview Function + ZOOM <br>
-    ⚪Navigation Functions  <br>
-    ⚪UI Setup <br> 
-    ⚪UI Buttons  <br>
-    ⚪UI Navigation  <br>
-    ⚪UI Status  <br> 
-    ⚪UI Progress Bar  <br>
-    ⚪UI Image Previews  <br><br>
+  ⚪Imports  <br>
+  ⚪Global Variables  <br>
+  ⚪Load Multiple Images Function   <br>
+  ⚪Update Status Label <br>
+  ⚪Remove Background Single Function  <br> 
+  🔵Crop Empty Space Single Function : Updated  <br>
+  ⚪Center Image Single Function  <br> 
+  ⚪Remove Background Function  <br>
+  ⚪Crop Empty Space Function  <br>
+  ⚪Center Image Function  <br>
+  ⚪All Processes Combined Function   <br>
+  ⚪Batch Processing (THREADING)  <br>
+  ⚪Save Image Function  <br>
+  ⚪Show Preview Function + ZOOM <br>
+  ⚪Navigation Functions  <br>
+  ⚪UI Setup <br> 
+  ⚪UI Buttons  <br>
+  ⚪UI Navigation  <br>
+  ⚪UI Status  <br> 
+  ⚪UI Progress Bar  <br>
+  ⚪UI Image Previews  <br><br>
 
 
 ### Version 8
 - Update: <br>
-  - Añadir fondos a las imagenes <br>
+  - Remove Background Fixed Problem with Sleeves <br>
+  - Center Functions and Crop Function Flip Order of Action to Better Work <br>
+  - Save Image Function now asks for an Output Folder to Save <br>
 - Code Structure:  <br>
-
+  🔵Imports : Updated <br>
+  ⚪Global Variables  <br>
+  ⚪Load Multiple Images Function   <br>
+  ⚪Update Status Label <br>
+  ⚪Remove Background Single Function  <br> 
+  ⚪Center Image Single Function  <br> 
+  ⚪Crop Empty Space Single Function  <br>
+  🔵Remove Background Function : Updated <br>
+  🔴Crop Empty Space Function : Deleted <br>
+  🔴Center Image Function : Deleted <br>
+  🔴All Processes Combined Function : Deleted  <br>
+  🟡Batch Processing (THREADING) : Changed => Remove Background All Images Function <br>
+  🔵Save Image Function : Updated <br>
+  🟢Save All Images Function : Added <br>
+  ⚪Show Preview Function + ZOOM <br>
+  ⚪Navigation Functions  <br>
+  🔵UI Setup : Updated <br> 
+  🔵UI Buttons : Updated <br>
+  ⚪UI Navigation  <br>
+  ⚪UI Status  <br> 
+  ⚪UI Progress Bar  <br>
+  ⚪UI Image Previews  <br><br>
 
 
 

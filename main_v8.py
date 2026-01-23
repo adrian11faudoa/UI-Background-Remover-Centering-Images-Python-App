@@ -2,11 +2,14 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
-from rembg import remove
+from rembg import remove, new_session
 import threading
 import os
+import numpy as np
 from pillow_heif import register_heif_opener
 register_heif_opener()
+bg_session = new_session("isnet-general-use")
+
 
 # Global Variables 
 image_paths = []
@@ -25,7 +28,6 @@ def load_images():
     if not paths:
         return
     image_paths = list(paths)
-    # original_imgs = [Image.open(p).convert("RGBA") for p in image_paths]
     original_imgs = [None] * len(image_paths)
     processed_imgs = [None] * len(image_paths)
     current_index = 0
@@ -60,15 +62,21 @@ def update_status():
 
 # Remove Background Single Function 
 def remove_background_single(img):
-    return remove(img).convert("RGBA")
+    return remove(img, session=bg_session).convert("RGBA")
+
+
+# Center Image Single Function 
+def center_image_single(img):
+    w, h = img.size
+    size = max(w, h)
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    x = (size - w) // 2
+    y = (size - h) // 2
+    canvas.paste(img, (x, y), img)
+    return canvas
 
 
 # Crop Empty Space Single Function 
-    #def crop_space_single(img):
-    #    bbox = img.getbbox()
-    #    if not bbox:
-    #        return img
-    #    return img.crop(bbox)
 def crop_space_single(img, alpha_threshold=10):
     """
     Crop transparent borders using alpha channel threshold.
@@ -83,27 +91,18 @@ def crop_space_single(img, alpha_threshold=10):
     return img.crop(bbox)
 
 
-# Center Image Single Function 
-def center_image_single(img):
-    w, h = img.size
-    size = max(w, h)
-    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    x = (size - w) // 2
-    y = (size - h) // 2
-    canvas.paste(img, (x, y), img)
-    return canvas
-
-
 # Remove Background Function
 def remove_background():
     if not image_paths:
         return
-    # Optional: disable button to prevent double-click
     btn_bg.config(state="disabled")
 
     def worker():
         img = get_original_image(current_index)
         result = remove_background_single(img)
+        result = center_image_single(result)
+        result = crop_space_single(result)
+
         processed_imgs[current_index] = result
         # Update UI safely from main thread
         root.after(0, lambda: finish(result))
@@ -114,82 +113,95 @@ def remove_background():
     threading.Thread(target=worker, daemon=True).start()
 
 
-# Crop Empty Space Function 
-def crop_space():
-    global processed_imgs
-    if processed_imgs[current_index] is None:
+# Remove Background All Images Function
+def process_all_images():
+    if not original_imgs:
+        messagebox.showerror("Error", "No images loaded.")
         return
-    processed_imgs[current_index] = crop_space_single(processed_imgs[current_index])
-    show_result_preview(processed_imgs[current_index])
+    for widget in button_list:
+        widget.config(state="disabled")
+    progress_label.config(text="Processing all images...")
+
+    def worker():
+        total = len(original_imgs)
+        for i in range(total):
+            try:
+                img = get_original_image(i)
+                result = remove_background_single(img)
+                result = center_image_single(result)
+                result = crop_space_single(result)
+                processed_imgs[i] = result
+            except Exception as e:
+                print(f"Error processing image {i}: {e}")
+            progress_var.set((i + 1) / total * 100)
+            progress_label.config(
+                text=f"Processing {i+1} / {total} images..."
+            )
+        root.after(0, finish)
+    def finish():
+        progress_label.config(text="Processing complete!")
+        messagebox.showinfo("Done", "All images processed.")
+        for widget in button_list:
+            widget.config(state="normal")
+    threading.Thread(target=worker, daemon=True).start()
 
 
-# Center Image Function
-def center_image():
-    global processed_imgs
+# Save Image Function (for current processed image)
+def save_image():
     if processed_imgs[current_index] is None:
+        messagebox.showerror("Error", "No processed image to save.")
         return
-    processed_imgs[current_index] = center_image_single(processed_imgs[current_index])
-    show_result_preview(processed_imgs[current_index])
+    default_name = os.path.splitext(
+        os.path.basename(image_paths[current_index]))[0] + ".png"
+    path = filedialog.asksaveasfilename(
+        initialfile=default_name,
+        defaultextension=".png",
+        filetypes=[("PNG Image", "*.png")])
+    if not path:
+        return
+    try:
+        processed_imgs[current_index].save(path, "PNG")
+        messagebox.showinfo("Saved", f"Image saved:\n{path}")
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to save image:\n{e}")
 
 
-# All Processes Combined Function (BG Remove + Crop + Center Functions)
-def all_processes():
-    remove_background()
-    crop_space()
-    center_image()
-
-
-# Batch Processing (THREADING)
-def batch_process_all():
+#Save All Images Function
+def save_all_images():
     if not original_imgs:
         messagebox.showerror("Error", "No images loaded.")
         return
     out_folder = filedialog.askdirectory(title="Select output folder")
     if not out_folder:
         return
-    # Disable UI buttons during processing
     for widget in button_list:
         widget.config(state="disabled")
-    progress_label.config(text="Starting batch...")
-
+    progress_label.config(text="Saving images...")
     def worker():
         total = len(original_imgs)
         for i in range(total):
             try:
-                #img = original_imgs[i]
-                img = get_original_image(i)
-                result = remove_background_single(img)
-                result = crop_space_single(result)
-                result = center_image_single(result)
-                processed_imgs[i] = result
-                # Save file
-                # Always save as PNG (preserves transparency)
-                base_name = os.path.splitext(os.path.basename(image_paths[i]))[0]
+                img_to_save = (
+                    processed_imgs[i]
+                    if processed_imgs[i] is not None
+                    else get_original_image(i))
+                base_name = os.path.splitext(
+                    os.path.basename(image_paths[i]))[0]
                 save_path = os.path.join(out_folder, f"{base_name}.png")
-                result.save(save_path, "PNG")
+                img_to_save.save(save_path, "PNG")
             except Exception as e:
-                print(f"Error at image {i}: {e}")
-            progress = (i + 1) / total * 100
-            progress_var.set(progress)
-            progress_label.config(text=f"Processing {i+1} / {total} images...")
-        progress_label.config(text="Done!")
-        messagebox.showinfo("Batch Complete", "All images processed and saved.")
-        # Re-enable buttons
+                print(f"Error saving image {i}: {e}")
+            progress_var.set((i + 1) / total * 100)
+            progress_label.config(
+                text=f"Saving {i+1} / {total} images..."
+            )
+        root.after(0, finish)
+    def finish():
+        progress_label.config(text="Save complete!")
+        messagebox.showinfo("Done", "All images saved.")
         for widget in button_list:
             widget.config(state="normal")
     threading.Thread(target=worker, daemon=True).start()
-
-
-# Save Image (for current processed image)
-def save_image():
-    if processed_imgs[current_index] is None:
-        messagebox.showerror("Error", "No processed image to save.")
-        return
-    path = filedialog.asksaveasfilename(defaultextension=".png")
-    if path:
-        processed_imgs[current_index].save(path, "PNG")
-        messagebox.showinfo("Saved", "Image saved successfully.")
-
 
 # Show Preview Function + ZOOM
 def show_thumbnail(img):
@@ -224,22 +236,24 @@ def prev_image():
 
 # UI Setup
 root = tk.Tk()
-root.title("Background Remover + Auto-Center + Batch App")
+root.title("Background Remover App")
 
 # UI Buttons
 btn_frame = tk.Frame(root)
 btn_frame.pack(pady=6)
 btn_load = tk.Button(btn_frame, text="Select Images", command=load_images)
 btn_bg = tk.Button(btn_frame, text="Remove Background", command=remove_background)
-btn_auto = tk.Button(btn_frame, text="All Processes", command=all_processes)
 btn_save = tk.Button(btn_frame, text="Save Image", command=save_image)
-btn_batch = tk.Button(btn_frame, text="Batch Process All", command=batch_process_all)
+btn_batch = tk.Button(btn_frame, text="Remove Background All", command=process_all_images)
+btn_save_all = tk.Button(btn_frame, text="Save All Images", command=save_all_images)
+
 btn_load.grid(row=0, column=0, padx=4)
 btn_bg.grid(row=0, column=1, padx=4)
-btn_auto.grid(row=0, column=2, padx=4)
-btn_save.grid(row=0, column=3, padx=4)
-btn_batch.grid(row=0, column=4, padx=4)
-button_list = [btn_load, btn_bg, btn_auto, btn_save, btn_batch]
+btn_save.grid(row=0, column=2, padx=4)
+btn_batch.grid(row=0, column=3, padx=4)
+btn_save_all.grid(row=0, column=4, padx=4)
+
+button_list = [btn_load, btn_bg, btn_save, btn_batch, btn_save_all]
 
 # UI Navigation
 nav_frame = tk.Frame(root)
