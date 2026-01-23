@@ -20,9 +20,11 @@
 
 - Version 2 <br>
   Update: <br>
+  <details>
     Multi Image Support <br>
     All Process Button <br>
     Navigate Images Previews <br>
+  </details>
   Code Structure:  <br>
     ⚪Imports  <br>
     🔵Global Variables : Updated <br>
