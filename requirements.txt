@@ -1,0 +1,16 @@
+# ClothingSnap - Python dependencies
+# Install with: pip install -r requirements.txt
+
+# Background removal
+# Use CPU backend by default so rembg always has a runtime on fresh installs.
+rembg[cpu]>=2.0.75
+
+# Optional: for NVIDIA/CUDA machines, replace the line above with:
+# rembg[gpu]>=2.0.75
+
+# Image processing
+Pillow>=10.0.0
+opencv-python>=4.8.0
+numpy>=1.24.0
+
+# tkinter is included with standard Python installations
