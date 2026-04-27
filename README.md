@@ -1,56 +1,44 @@
-# ClothingSnap — Product Image Editor
+# Clothes Photo Editor — Background Removal, Centering, Auto-crop, WEBP convert
 
 A desktop batch photo editor built specifically for **e-commerce clothing product images**.
 
 Removes backgrounds, centers items, and normalises the entire catalogue to a consistent canvas — producing PNG/WEBP files with **true alpha-channel transparency**.
 
----
-
 ## Features
 
 | Feature | Details |
 |---|---|
-| Background removal | `rembg` + u2net model, alpha-matting for fabric/hair edges |
-| Edge refinement | Morphological cleanup + Gaussian anti-aliasing |
-| Auto-crop | Tight bounding-box crop, no empty margins |
-| Centering | Item perfectly centred on fixed canvas |
-| Consistent scaling | Clothing occupies configurable % of canvas height |
-| Batch processing | Full folder, with progress bar and safe cancel |
-| Output | PNG (lossless) or WEBP (90 quality), RGBA transparency |
+| Background removal    | `rembg` + u2net model, alpha-matting for fabric/hair edges    |
+| Edge refinement       | Morphological cleanup + Gaussian anti-aliasing                |
+| Auto-crop             | Tight bounding-box crop, no empty margins                     |
+| Centering             | Item perfectly centred on fixed canvas                        |
+| Consistent scaling    | Clothing occupies configurable % of canvas height             |
+| Batch processing      | Full folder, with progress bar and safe cancel                |
+| Output                | PNG (lossless) or WEBP (90 quality), RGBA transparency        |
 
----
 
 ## Installation
 
 ### 1. Python ≥ 3.9 required
-```bash
 python --version
-```
 
 ### 2. Install dependencies
-```bash
 pip install -r requirements.txt
-```
 
 > **GPU acceleration (optional but recommended for speed)**
 > `rembg[gpu]` uses ONNX Runtime with CUDA. If you don't have a GPU, install `rembg` instead:
-> ```bash
 > pip install rembg
-> ```
 
 ### 3. First run — model download
 On first use, `rembg` will automatically download the **u2net model** (~170 MB). This happens once and is cached in `~/.u2net/`.
 
----
 
 ## Running the App
-
-```bash
-cd clothing_editor
 python main.py
-```
 
 .\.venv\Scripts\activate
+
+deactivate
 
 
 ## Usage
