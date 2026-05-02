@@ -12,7 +12,7 @@ import time
 import shutil
 import subprocess
 from pathlib import Path
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Callable, Optional, Tuple, TypeVar
 
 import cv2
@@ -64,6 +64,13 @@ class ProcessingConfig:
     model_timeout_sec: int = 60
     remove_timeout_sec: int = 180
     use_cropped_size_canvas: bool = True
+    auto_recover_mask: bool = True
+    secondary_rembg_model: Optional[str] = "u2net"
+    fragment_keep_ratio: float = 0.05
+    hole_recovery_trigger_ratio: float = 0.015
+    hole_fill_max_ratio: float = 0.03
+    hole_fill_small_ratio: float = 0.004
+    hole_fill_min_rel_y: float = 0.18
 
 
 def _run_with_timeout(operation: Callable[[], T], timeout_sec: int, label: str) -> T:
@@ -345,7 +352,7 @@ def get_alpha_bbox(image: Image.Image, threshold: int = 1) -> Optional[Tuple[int
         image = image.convert("RGBA")
 
     alpha = np.array(image.split()[3], dtype=np.uint8)
-    mask = _best_component_mask(alpha > threshold)
+    mask = _keep_significant_components(alpha > threshold, min_relative_area=0.05, min_area=128)
     if mask is None:
         return None
 
@@ -363,6 +370,145 @@ def _has_alpha_content(image: Image.Image, threshold: int = 1) -> bool:
         image = image.convert("RGBA")
     alpha = np.array(image.getchannel("A"), dtype=np.uint8)
     return bool(np.any(alpha > threshold))
+
+
+def _keep_significant_components(
+    binary_mask: np.ndarray,
+    min_relative_area: float = 0.05,
+    min_area: int = 128,
+) -> Optional[np.ndarray]:
+    """Keep the largest foreground component plus similarly large peers."""
+    binary_u8 = binary_mask.astype(np.uint8)
+    if not binary_u8.any():
+        return None
+
+    labels_count, labels, stats, _ = cv2.connectedComponentsWithStats(binary_u8, connectivity=8)
+    if labels_count <= 1:
+        return binary_u8.astype(bool)
+
+    areas = stats[1:, cv2.CC_STAT_AREA]
+    best_area = int(areas.max())
+    keep_min_area = max(min_area, int(best_area * max(0.0, min_relative_area)))
+
+    keep = np.zeros_like(binary_mask, dtype=bool)
+    for label in range(1, labels_count):
+        area = int(stats[label, cv2.CC_STAT_AREA])
+        if area >= keep_min_area:
+            keep |= labels == label
+
+    if not keep.any():
+        keep = labels == (int(np.argmax(areas)) + 1)
+    return keep
+
+
+def _fill_enclosed_holes(
+    mask: np.ndarray,
+    max_hole_ratio: float = 0.03,
+    small_hole_ratio: float = 0.004,
+    min_rel_y: float = 0.18,
+) -> np.ndarray:
+    """
+    Fill enclosed transparent holes inside a garment silhouette.
+    Leaves large top-area openings (neck holes) untouched.
+    """
+    if not mask.any():
+        return mask
+
+    h, w = mask.shape
+    inverse = (~mask).astype(np.uint8)
+    labels_count, labels, stats, centroids = cv2.connectedComponentsWithStats(inverse, connectivity=8)
+
+    ys, xs = np.where(mask)
+    left, right = int(xs.min()), int(xs.max()) + 1
+    top, bottom = int(ys.min()), int(ys.max()) + 1
+    bbox_area = float(max(1, (right - left) * (bottom - top)))
+
+    filled = mask.copy()
+    for label in range(1, labels_count):
+        x, y, comp_w, comp_h, area = stats[label]
+        if x <= 0 or y <= 0 or (x + comp_w) >= w or (y + comp_h) >= h:
+            # This inverse component connects to true outer background.
+            continue
+
+        area_ratio = float(area) / bbox_area
+        _, cy = centroids[label]
+        rel_y = (float(cy) - top) / max(1.0, float(bottom - top))
+
+        if area_ratio <= small_hole_ratio or (area_ratio <= max_hole_ratio and rel_y >= min_rel_y):
+            filled[labels == label] = True
+
+    return filled
+
+
+def _estimate_enclosed_hole_ratio(mask: np.ndarray) -> float:
+    """Estimate ratio of enclosed holes inside the foreground bbox."""
+    if not mask.any():
+        return 0.0
+
+    h, w = mask.shape
+    inverse = (~mask).astype(np.uint8)
+    labels_count, labels, stats, _ = cv2.connectedComponentsWithStats(inverse, connectivity=8)
+
+    ys, xs = np.where(mask)
+    left, right = int(xs.min()), int(xs.max()) + 1
+    top, bottom = int(ys.min()), int(ys.max()) + 1
+    bbox_area = float(max(1, (right - left) * (bottom - top)))
+
+    enclosed_area = 0
+    for label in range(1, labels_count):
+        x, y, comp_w, comp_h, area = stats[label]
+        if x <= 0 or y <= 0 or (x + comp_w) >= w or (y + comp_h) >= h:
+            continue
+        enclosed_area += int(area)
+
+    return float(enclosed_area) / bbox_area
+
+
+def _mask_needs_recovery(mask: np.ndarray, hole_ratio_trigger: float = 0.015) -> bool:
+    """Detect fragmented/holed masks that should trigger a secondary model pass."""
+    if not mask.any():
+        return True
+
+    labels_count, _, stats, _ = cv2.connectedComponentsWithStats(mask.astype(np.uint8), connectivity=8)
+    hole_ratio = _estimate_enclosed_hole_ratio(mask)
+
+    if labels_count > 2:
+        areas = stats[1:, cv2.CC_STAT_AREA]
+        largest = int(areas.max()) if areas.size else 0
+        if largest > 0:
+            large_parts = int(np.sum(areas >= max(128, int(largest * 0.05))))
+            if large_parts >= 2:
+                return True
+            if labels_count >= 4 and hole_ratio >= 0.002:
+                return True
+
+    return hole_ratio >= max(0.0, hole_ratio_trigger)
+
+
+def _merge_model_masks(primary_mask: np.ndarray, secondary_mask: np.ndarray, config: ProcessingConfig) -> np.ndarray:
+    """Union primary + secondary masks, then keep substantial garment components."""
+    merged = primary_mask | secondary_mask
+    merged = _keep_significant_components(
+        merged,
+        min_relative_area=config.fragment_keep_ratio,
+        min_area=128,
+    )
+    if merged is None:
+        return primary_mask
+    return merged
+
+
+def _compose_rgba_with_mask(source_image: Image.Image, alpha: np.ndarray) -> Image.Image:
+    """Create RGBA from source RGB and alpha mask; whiten fully transparent pixels."""
+    source_rgba = np.array(source_image.convert("RGBA"), dtype=np.uint8)
+    alpha_u8 = alpha.astype(np.uint8)
+    source_rgba[:, :, 3] = alpha_u8
+
+    transparent = alpha_u8 == 0
+    source_rgba[transparent, 0] = 255
+    source_rgba[transparent, 1] = 255
+    source_rgba[transparent, 2] = 255
+    return Image.fromarray(source_rgba, mode="RGBA")
 
 
 def fallback_remove_background(source_image: Image.Image, config: ProcessingConfig) -> Image.Image:
@@ -403,6 +549,59 @@ def fallback_remove_background(source_image: Image.Image, config: ProcessingConf
     return Image.fromarray(rgba, mode="RGBA")
 
 
+def recover_mask_with_secondary_model(
+    source_image: Image.Image,
+    primary_result: Image.Image,
+    config: ProcessingConfig,
+) -> Image.Image:
+    """
+    Optionally run a secondary rembg model and merge both masks when
+    the primary mask appears fragmented or hole-heavy.
+    """
+    if not config.auto_recover_mask:
+        return primary_result
+
+    secondary_model = (config.secondary_rembg_model or "").strip()
+    if not secondary_model or secondary_model == config.rembg_model:
+        return primary_result
+
+    primary_rgba = np.array(primary_result.convert("RGBA"), dtype=np.uint8)
+    primary_alpha = primary_rgba[:, :, 3]
+    primary_mask = primary_alpha > config.alpha_threshold
+    if not _mask_needs_recovery(primary_mask, hole_ratio_trigger=config.hole_recovery_trigger_ratio):
+        return primary_result
+
+    try:
+        logger.info(
+            "Primary mask flagged for recovery; running secondary model '%s' for merge.",
+            secondary_model,
+        )
+        secondary_config = replace(config, rembg_model=secondary_model, auto_recover_mask=False)
+        secondary_result = remove_background(source_image, secondary_config)
+        if config.smooth_edges:
+            secondary_result = refine_alpha_edges(secondary_result, config.edge_smooth_radius)
+
+        secondary_rgba = np.array(secondary_result.convert("RGBA"), dtype=np.uint8)
+        secondary_alpha = secondary_rgba[:, :, 3]
+        secondary_mask = secondary_alpha > config.alpha_threshold
+
+        merged_mask = _merge_model_masks(primary_mask, secondary_mask, config)
+        merged_mask = _fill_enclosed_holes(
+            merged_mask,
+            max_hole_ratio=config.hole_fill_max_ratio,
+            small_hole_ratio=config.hole_fill_small_ratio,
+            min_rel_y=config.hole_fill_min_rel_y,
+        )
+
+        merged_alpha = np.maximum(primary_alpha, secondary_alpha)
+        merged_alpha = np.where(merged_mask, merged_alpha, 0).astype(np.uint8)
+        return _compose_rgba_with_mask(source_image, merged_alpha)
+
+    except Exception as exc:
+        logger.warning("Secondary mask recovery failed; keeping primary mask. Error: %s", exc)
+        return primary_result
+
+
 def crop_to_alpha_content(
     image: Image.Image,
     threshold: int = 1,
@@ -423,86 +622,38 @@ def crop_to_alpha_content(
     if not np.any(alpha > threshold):
         raise ValueError("No clothing detected after background removal (alpha is empty).")
 
-    # Find a stable high-confidence core first, then grow only into connected
-    # medium-alpha regions. This prevents border/background leaks.
-    core_thresholds = [240, 220, 200, 180, 160, 140, 120, 100, 80, 60, 40, 30, 20, 10]
-    core_mask = None
-    core_thr_used = max(2, threshold)
-    for core_thr in core_thresholds:
-        core_thr = max(core_thr, threshold)
-        candidate = _best_component_mask(alpha >= core_thr)
-        if candidate is None:
-            continue
-        area = int(candidate.sum())
-        if area < max(80, int(alpha.size * 0.00005)):
-            continue
-        core_mask = candidate
-        core_thr_used = core_thr
-        break
-
-    if core_mask is None:
-        core_mask = _best_component_mask(alpha > threshold)
-        if core_mask is None:
-            raise ValueError("No clothing detected after background removal (alpha is empty).")
-
-    soft_thr = max(threshold, min(24, max(8, core_thr_used // 3)))
-    soft_mask = alpha >= soft_thr
-
-    source_rgb = None
-    border_bg = np.zeros_like(soft_mask, dtype=bool)
-    if source_image is not None:
-        source_rgb = np.array(source_image.convert("RGB"), dtype=np.uint8)
-        if source_rgb.shape[:2] == soft_mask.shape:
-            border_bg = _build_border_background_mask(source_rgb)
-            # Background-like border areas are deprioritized, but we keep core.
-            soft_mask = (soft_mask & (~border_bg)) | core_mask
-        else:
-            source_rgb = None
-
-    main_mask = _connected_to_core(core_mask, soft_mask)
-    if source_rgb is not None:
-        main_mask = _refine_with_grabcut(
-            source_rgb=source_rgb,
-            core_mask=core_mask,
-            probable_fg=main_mask,
-            probable_bg=border_bg,
-        )
-        main_mask = _connected_to_core(core_mask, main_mask)
-
-    main_mask = _best_component_mask(main_mask)
+    # Conservative mask cleanup:
+    # 1) keep dominant connected components (to preserve split garment regions)
+    # 2) fill enclosed holes from uncertain model output
+    # 3) apply light morphology to smooth hard speckles
+    main_mask = _keep_significant_components(alpha > threshold, min_relative_area=0.05, min_area=128)
     if main_mask is None:
-        main_mask = core_mask
+        raise ValueError("No clothing detected after background removal (alpha is empty).")
 
-    # Break tiny accidental bridges and smooth component edges.
-    main_u8 = (main_mask.astype(np.uint8) * 255)
-    main_u8 = cv2.morphologyEx(main_u8, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8), iterations=1)
-    main_u8 = cv2.morphologyEx(main_u8, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8), iterations=1)
+    main_mask = _fill_enclosed_holes(
+        main_mask,
+        max_hole_ratio=0.03,
+        small_hole_ratio=0.004,
+        min_rel_y=0.18,
+    )
+
+    kernel = np.ones((3, 3), np.uint8)
+    main_u8 = cv2.morphologyEx((main_mask.astype(np.uint8) * 255), cv2.MORPH_CLOSE, kernel, iterations=1)
     main_mask = main_u8 > 0
-    main_mask = _connected_to_core(core_mask, main_mask)
 
-    # Hard-clear 1px outer border noise that can create full-frame black margins.
+    # Remove accidental 1px border pixels.
     main_mask[0, :] = False
     main_mask[-1, :] = False
     main_mask[:, 0] = False
     main_mask[:, -1] = False
 
-    # Keep only article pixels; hard-zero all background alpha.
     new_alpha = np.where(main_mask, alpha, 0).astype(np.uint8)
     new_alpha[new_alpha < threshold] = 0
-    rgba[:, :, 3] = new_alpha
-
-    # Avoid black halos in apps that preview transparent WEBP against black.
-    transparent = new_alpha == 0
-    rgba[transparent, 0] = 255
-    rgba[transparent, 1] = 255
-    rgba[transparent, 2] = 255
-
-    cleaned = Image.fromarray(rgba, mode="RGBA")
+    cleaned = _compose_rgba_with_mask(image, new_alpha)
 
     bbox = get_alpha_bbox(cleaned, threshold=threshold)
     if bbox is None:
         raise ValueError("No visible clothing pixels available to crop.")
-
     return cleaned.crop(bbox)
 
 
@@ -748,6 +899,12 @@ def process_image(input_path: str, output_path: str, config: ProcessingConfig) -
             t0 = time.perf_counter()
             img_nobg = refine_alpha_edges(img_nobg, config.edge_smooth_radius)
             logger.info("[%s] Step 3/5 done in %.2fs", image_name, time.perf_counter() - t0)
+
+        if config.auto_recover_mask and (config.secondary_rembg_model or "").strip():
+            logger.info("[%s] Step 3b/5 optional mask recovery", image_name)
+            t0 = time.perf_counter()
+            img_nobg = recover_mask_with_secondary_model(img, img_nobg, config)
+            logger.info("[%s] Step 3b/5 done in %.2fs", image_name, time.perf_counter() - t0)
 
         logger.info("[%s] Step 4/5 alpha crop + center", image_name)
         t0 = time.perf_counter()

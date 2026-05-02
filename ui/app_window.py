@@ -33,7 +33,7 @@ FONT_SMALL = ("Segoe UI", 8)
 class ClothingSnapApp:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("ClothingSnap - Product Image Editor")
+        self.root.title("")
         self.root.geometry("620x500")
         self.root.minsize(540, 460)
         self.root.configure(bg=BG)
@@ -99,14 +99,14 @@ class ClothingSnapApp:
 
         tk.Label(
             header,
-            text="ClothingSnap",
+            text="Clothing Image Optimizer ", 
             font=("Segoe UI Semibold", 18),
             bg=BG,
             fg=TEXT,
         ).pack(side="left")
         tk.Label(
             header,
-            text="Product Image Editor",
+            text="Studio Editor",
             font=FONT_LABEL,
             bg=BG,
             fg=TEXT_DIM,
