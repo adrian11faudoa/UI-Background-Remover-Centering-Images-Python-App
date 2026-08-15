@@ -1,2 +1,4 @@
 .venv/
 Photo Editor.zip
+__pycache__/
+*.pyc

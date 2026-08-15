@@ -71,6 +71,22 @@ class ProcessingConfig:
     hole_fill_max_ratio: float = 0.03
     hole_fill_small_ratio: float = 0.004
     hole_fill_min_rel_y: float = 0.18
+    min_component_area_ratio: float = 0.00003
+    suspicious_component_ratio: float = 0.05
+    suspicious_min_solidity: float = 0.34
+    reconstruction_close_ratio: float = 0.055
+    debug_output_dir: Optional[str] = None
+
+
+@dataclass
+class MaskValidation:
+    is_suspicious: bool
+    reason: str = ""
+    component_count: int = 0
+    large_component_count: int = 0
+    foreground_ratio: float = 0.0
+    bbox_solidity: float = 0.0
+    enclosed_hole_ratio: float = 0.0
 
 
 def _run_with_timeout(operation: Callable[[], T], timeout_sec: int, label: str) -> T:
@@ -153,7 +169,7 @@ def remove_background(image: Image.Image, config: ProcessingConfig) -> Image.Ima
             image,
             session=session,
             alpha_matting=False,
-            post_process_mask=True,
+            post_process_mask=False,
         )
 
     start = time.perf_counter()
@@ -189,6 +205,241 @@ def refine_alpha_edges(image: Image.Image, smooth_radius: int = 1) -> Image.Imag
 
     a_clean = Image.fromarray(a_np, mode="L")
     return Image.merge("RGBA", (r, g, b, a_clean))
+
+
+def _save_debug_image(config: ProcessingConfig, image_name: str, stage: str, image: Image.Image) -> None:
+    """Save a pipeline stage image when debug output is explicitly enabled."""
+    if not config.debug_output_dir:
+        return
+
+    try:
+        debug_dir = Path(config.debug_output_dir) / Path(image_name).stem
+        debug_dir.mkdir(parents=True, exist_ok=True)
+        image.save(debug_dir / f"debug_{stage}.png")
+    except Exception as exc:
+        logger.warning("Could not save debug image %s/%s: %s", image_name, stage, exc)
+
+
+def _alpha_mask_image(mask: np.ndarray) -> Image.Image:
+    """Create a grayscale debug image from a boolean or uint8 mask."""
+    if mask.dtype == bool:
+        return Image.fromarray((mask.astype(np.uint8) * 255), mode="L")
+    return Image.fromarray(mask.astype(np.uint8), mode="L")
+
+
+def _remove_tiny_components(
+    binary_mask: np.ndarray,
+    min_area: int,
+) -> Optional[np.ndarray]:
+    """Remove isolated specks without assuming the garment is a single component."""
+    binary_u8 = binary_mask.astype(np.uint8)
+    if not binary_u8.any():
+        return None
+
+    labels_count, labels, stats, _ = cv2.connectedComponentsWithStats(binary_u8, connectivity=8)
+    if labels_count <= 1:
+        return binary_u8.astype(bool)
+
+    keep = np.zeros_like(binary_mask, dtype=bool)
+    for label in range(1, labels_count):
+        if int(stats[label, cv2.CC_STAT_AREA]) >= min_area:
+            keep |= labels == label
+
+    if keep.any():
+        return keep
+
+    areas = stats[1:, cv2.CC_STAT_AREA]
+    return labels == (int(np.argmax(areas)) + 1)
+
+
+def _foreground_bbox_from_mask(mask: np.ndarray) -> Optional[Tuple[int, int, int, int]]:
+    """Return a tight foreground bbox from a boolean mask."""
+    if not mask.any():
+        return None
+    ys, xs = np.where(mask)
+    return int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
+
+
+def validate_garment_mask(mask: np.ndarray, config: ProcessingConfig) -> MaskValidation:
+    """
+    Detect masks that look structurally unsafe for clothing.
+    This intentionally checks topology and area, not foreground color.
+    """
+    if not mask.any():
+        return MaskValidation(True, "empty alpha mask")
+
+    h, w = mask.shape
+    img_area = float(max(1, h * w))
+    labels_count, _, stats, _ = cv2.connectedComponentsWithStats(mask.astype(np.uint8), connectivity=8)
+    component_count = max(0, labels_count - 1)
+    areas = stats[1:, cv2.CC_STAT_AREA] if labels_count > 1 else np.array([], dtype=np.int32)
+    largest = int(areas.max()) if areas.size else 0
+    large_min = max(128, int(largest * config.suspicious_component_ratio))
+    large_count = int(np.sum(areas >= large_min)) if largest else 0
+
+    bbox = _foreground_bbox_from_mask(mask)
+    if bbox is None:
+        return MaskValidation(True, "empty alpha mask")
+
+    left, top, right, bottom = bbox
+    bbox_area = float(max(1, (right - left) * (bottom - top)))
+    fg_area = float(np.count_nonzero(mask))
+    bbox_solidity = fg_area / bbox_area
+    hole_ratio = _estimate_enclosed_hole_ratio(mask)
+    fg_ratio = fg_area / img_area
+
+    reasons = []
+    fragmented = large_count >= 2
+    sparse = bbox_solidity < config.suspicious_min_solidity and bbox_area / img_area > 0.05
+
+    if fragmented:
+        reasons.append("multiple substantial foreground components")
+    if hole_ratio >= config.hole_recovery_trigger_ratio and (fragmented or sparse):
+        reasons.append("large enclosed transparent region")
+    if sparse:
+        reasons.append("foreground too sparse inside object bounds")
+    if fg_ratio < 0.01:
+        reasons.append("foreground area abnormally small")
+
+    return MaskValidation(
+        is_suspicious=bool(reasons),
+        reason=", ".join(reasons),
+        component_count=component_count,
+        large_component_count=large_count,
+        foreground_ratio=fg_ratio,
+        bbox_solidity=bbox_solidity,
+        enclosed_hole_ratio=hole_ratio,
+    )
+
+
+def _close_mask_for_garment_reconstruction(mask: np.ndarray, config: ProcessingConfig) -> np.ndarray:
+    """Bridge likely garment regions when the segmentation split the same product."""
+    bbox = _foreground_bbox_from_mask(mask)
+    if bbox is None:
+        return mask
+
+    left, top, right, bottom = bbox
+    span = max(1, min(right - left, bottom - top))
+    k = max(5, int(round(span * config.reconstruction_close_ratio)))
+    if k % 2 == 0:
+        k += 1
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))
+    closed = cv2.morphologyEx(mask.astype(np.uint8) * 255, cv2.MORPH_CLOSE, kernel, iterations=2) > 0
+
+    points = np.column_stack(np.where(mask > 0))
+    if len(points) >= 3:
+        hull_points = np.flip(points, axis=1).astype(np.int32)
+        hull = cv2.convexHull(hull_points)
+        hull_mask = np.zeros_like(mask, dtype=np.uint8)
+        cv2.fillConvexPoly(hull_mask, hull, 255)
+        hull_mask = cv2.morphologyEx(hull_mask, cv2.MORPH_OPEN, kernel, iterations=1) > 0
+        closed |= hull_mask
+
+    return closed
+
+
+def _restore_legitimate_openings(original_mask: np.ndarray, reconstructed_mask: np.ndarray) -> np.ndarray:
+    """
+    Keep large top openings transparent after reconstruction.
+    Missing fabric in the torso is usually central/lower; neck openings are
+    high in the product bbox and should remain transparent.
+    """
+    bbox = _foreground_bbox_from_mask(reconstructed_mask)
+    if bbox is None:
+        return reconstructed_mask
+
+    left, top, right, bottom = bbox
+    bbox_h = max(1, bottom - top)
+    bbox_area = float(max(1, (right - left) * bbox_h))
+    added = reconstructed_mask & ~original_mask
+
+    inverse = (~original_mask & reconstructed_mask).astype(np.uint8)
+    labels_count, labels, stats, centroids = cv2.connectedComponentsWithStats(inverse, connectivity=8)
+    restored = reconstructed_mask.copy()
+
+    for label in range(1, labels_count):
+        x, y, comp_w, comp_h, area = stats[label]
+        if area <= 0:
+            continue
+
+        _, cy = centroids[label]
+        rel_y = (float(cy) - top) / float(bbox_h)
+        area_ratio = float(area) / bbox_area
+        touches_top_zone = y <= top + int(bbox_h * 0.22)
+        wide_top_opening = touches_top_zone and comp_w >= max(8, int((right - left) * 0.08))
+
+        if wide_top_opening and rel_y <= 0.35 and area_ratio >= 0.003:
+            restored[labels == label] = False
+
+    return restored | (original_mask & ~added)
+
+
+def reconstruct_garment_mask(mask: np.ndarray, config: ProcessingConfig) -> np.ndarray:
+    """
+    Recover likely missing clothing regions without color-thresholding.
+    The reconstruction only runs for suspicious masks and operates on foreground
+    topology: bridge nearby product parts, fill internal segmentation dropouts,
+    then keep plausible neck/opening areas transparent.
+    """
+    if not mask.any():
+        return mask
+
+    reconstructed = _close_mask_for_garment_reconstruction(mask, config)
+    reconstructed = _fill_enclosed_holes(
+        reconstructed,
+        max_hole_ratio=0.40,
+        small_hole_ratio=max(config.hole_fill_small_ratio, 0.006),
+        min_rel_y=config.hole_fill_min_rel_y,
+    )
+    reconstructed = _restore_legitimate_openings(mask, reconstructed)
+
+    min_area = max(32, int(mask.size * config.min_component_area_ratio))
+    cleaned = _remove_tiny_components(reconstructed, min_area=min_area)
+    return cleaned if cleaned is not None else mask
+
+
+def build_refined_alpha(
+    source_image: Image.Image,
+    segmented_image: Image.Image,
+    config: ProcessingConfig,
+) -> Tuple[np.ndarray, MaskValidation]:
+    """
+    Convert model alpha to a garment-aware alpha channel.
+    This is the central postprocessing step used before crop/center/export.
+    """
+    source_rgba = np.array(source_image.convert("RGBA"), dtype=np.uint8)
+    segmented_rgba = np.array(segmented_image.convert("RGBA"), dtype=np.uint8)
+    alpha = segmented_rgba[:, :, 3]
+    raw_mask = alpha > config.alpha_threshold
+    min_area = max(32, int(raw_mask.size * config.min_component_area_ratio))
+
+    cleaned_mask = _remove_tiny_components(raw_mask, min_area=min_area)
+    if cleaned_mask is None:
+        return np.zeros_like(alpha, dtype=np.uint8), validate_garment_mask(raw_mask, config)
+
+    validation = validate_garment_mask(cleaned_mask, config)
+    if validation.is_suspicious:
+        logger.info("Mask flagged as suspicious: %s", validation.reason)
+        reconstructed_mask = reconstruct_garment_mask(cleaned_mask, config)
+        reconstructed_validation = validate_garment_mask(reconstructed_mask, config)
+        if (
+            np.count_nonzero(reconstructed_mask) >= np.count_nonzero(cleaned_mask)
+            and reconstructed_validation.bbox_solidity >= validation.bbox_solidity
+        ):
+            cleaned_mask = reconstructed_mask
+            validation = reconstructed_validation
+
+    added_by_reconstruction = cleaned_mask & ~raw_mask
+    refined_alpha = np.where(cleaned_mask, alpha, 0).astype(np.uint8)
+    refined_alpha[added_by_reconstruction] = 255
+
+    source_alpha = source_rgba[:, :, 3]
+    if np.any(source_alpha < 255):
+        refined_alpha = np.minimum(refined_alpha, source_alpha)
+
+    refined_alpha[refined_alpha <= config.alpha_threshold] = 0
+    return refined_alpha, validation
 
 
 def _best_component_mask(binary: np.ndarray) -> Optional[np.ndarray]:
@@ -352,7 +603,7 @@ def get_alpha_bbox(image: Image.Image, threshold: int = 1) -> Optional[Tuple[int
         image = image.convert("RGBA")
 
     alpha = np.array(image.split()[3], dtype=np.uint8)
-    mask = _keep_significant_components(alpha > threshold, min_relative_area=0.05, min_area=128)
+    mask = _remove_tiny_components(alpha > threshold, min_area=max(32, int(alpha.size * 0.00003)))
     if mask is None:
         return None
 
@@ -610,8 +861,8 @@ def crop_to_alpha_content(
     """
     Alpha-based tight crop:
     - detect non-transparent pixels from alpha
-    - keep only largest connected component
-    - crop with zero margins
+    - remove only tiny isolated specks
+    - crop around the complete garment mask
     """
     if image.mode != "RGBA":
         image = image.convert("RGBA")
@@ -622,20 +873,9 @@ def crop_to_alpha_content(
     if not np.any(alpha > threshold):
         raise ValueError("No clothing detected after background removal (alpha is empty).")
 
-    # Conservative mask cleanup:
-    # 1) keep dominant connected components (to preserve split garment regions)
-    # 2) fill enclosed holes from uncertain model output
-    # 3) apply light morphology to smooth hard speckles
-    main_mask = _keep_significant_components(alpha > threshold, min_relative_area=0.05, min_area=128)
+    main_mask = _remove_tiny_components(alpha > threshold, min_area=max(32, int(alpha.size * 0.00003)))
     if main_mask is None:
         raise ValueError("No clothing detected after background removal (alpha is empty).")
-
-    main_mask = _fill_enclosed_holes(
-        main_mask,
-        max_hole_ratio=0.03,
-        small_hole_ratio=0.004,
-        min_rel_y=0.18,
-    )
 
     kernel = np.ones((3, 3), np.uint8)
     main_u8 = cv2.morphologyEx((main_mask.astype(np.uint8) * 255), cv2.MORPH_CLOSE, kernel, iterations=1)
@@ -884,11 +1124,13 @@ def process_image(input_path: str, output_path: str, config: ProcessingConfig) -
         logger.info("[%s] Step 1/5 load image", image_name)
         t0 = time.perf_counter()
         img = load_input_image(input_path)
+        _save_debug_image(config, image_name, "original", img)
         logger.info("[%s] Step 1/5 done in %.2fs", image_name, time.perf_counter() - t0)
 
         logger.info("[%s] Step 2/5 remove background", image_name)
         t0 = time.perf_counter()
         img_nobg = remove_background(img, config)
+        _save_debug_image(config, image_name, "raw_mask", _alpha_mask_image(np.array(img_nobg.getchannel("A"))))
         if not _has_alpha_content(img_nobg, threshold=config.alpha_threshold):
             logger.warning("[%s] rembg returned empty alpha; using source-image fallback mask", image_name)
             img_nobg = fallback_remove_background(img, config)
@@ -906,6 +1148,25 @@ def process_image(input_path: str, output_path: str, config: ProcessingConfig) -
             img_nobg = recover_mask_with_secondary_model(img, img_nobg, config)
             logger.info("[%s] Step 3b/5 done in %.2fs", image_name, time.perf_counter() - t0)
 
+        logger.info("[%s] Step 3c/5 validate + refine garment mask", image_name)
+        t0 = time.perf_counter()
+        refined_alpha, validation = build_refined_alpha(img, img_nobg, config)
+        if not np.any(refined_alpha > config.alpha_threshold):
+            logger.warning("[%s] Refined alpha is empty; using source-image fallback mask", image_name)
+            img_nobg = fallback_remove_background(img, config)
+            refined_alpha, validation = build_refined_alpha(img, img_nobg, config)
+        img_nobg = _compose_rgba_with_mask(img, refined_alpha)
+        _save_debug_image(config, image_name, "refined_mask", _alpha_mask_image(refined_alpha))
+        logger.info(
+            "[%s] Step 3c/5 done in %.2fs (components=%s, solidity=%.3f, holes=%.3f%s)",
+            image_name,
+            time.perf_counter() - t0,
+            validation.component_count,
+            validation.bbox_solidity,
+            validation.enclosed_hole_ratio,
+            f", flagged={validation.reason}" if validation.is_suspicious else "",
+        )
+
         logger.info("[%s] Step 4/5 alpha crop + center", image_name)
         t0 = time.perf_counter()
         try:
@@ -917,7 +1178,10 @@ def process_image(input_path: str, output_path: str, config: ProcessingConfig) -
             img_nobg = fallback_remove_background(img, config)
             if config.smooth_edges:
                 img_nobg = refine_alpha_edges(img_nobg, config.edge_smooth_radius)
+            refined_alpha, _ = build_refined_alpha(img, img_nobg, config)
+            img_nobg = _compose_rgba_with_mask(img, refined_alpha)
             img_final = crop_and_center(img_nobg, config, source_image=img)
+        _save_debug_image(config, image_name, "final", img_final)
         logger.info("[%s] Step 4/5 done in %.2fs", image_name, time.perf_counter() - t0)
 
         logger.info("[%s] Step 5/5 save output", image_name)
@@ -925,14 +1189,16 @@ def process_image(input_path: str, output_path: str, config: ProcessingConfig) -
         output_dir = os.path.dirname(output_path)
         if output_dir:
             os.makedirs(output_dir, exist_ok=True)
-        img_final.save(
-            output_path,
-            format="WEBP",
-            quality=config.webp_quality,
-            lossless=config.webp_lossless,
-            method=6,
-            exact=True,
-        )
+        output_format = config.output_format.upper()
+        save_kwargs = {}
+        if output_format == "WEBP":
+            save_kwargs.update(
+                quality=config.webp_quality,
+                lossless=config.webp_lossless,
+                method=6,
+                exact=True,
+            )
+        img_final.save(output_path, format=output_format, **save_kwargs)
         logger.info("[%s] Step 5/5 done in %.2fs", image_name, time.perf_counter() - t0)
         logger.info("[%s] Finished in %.2fs", image_name, time.perf_counter() - total_start)
         return True
@@ -953,6 +1219,7 @@ def collect_images(folder: str) -> list:
 
 
 def build_output_path(input_path: str, output_folder: str, config: ProcessingConfig) -> str:
-    """Build output path with .webp extension."""
+    """Build output path with the configured transparent image extension."""
     stem = Path(input_path).stem
-    return str(Path(output_folder) / (stem + ".webp"))
+    ext = ".png" if config.output_format.upper() == "PNG" else ".webp"
+    return str(Path(output_folder) / (stem + ext))
